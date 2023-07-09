@@ -6,7 +6,11 @@ import {
   signInWithPopup,
   getAuth,
   signInWithRedirect,
-  GoogleAuthProvider
+  GoogleAuthProvider,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
 } from 'firebase/auth'
 
 import {
@@ -29,18 +33,20 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-const provider = new GoogleAuthProvider();
+const GoogleProvider = new GoogleAuthProvider();
 
-provider.getCustomParameters({
+GoogleProvider.getCustomParameters({
   "prompt": "select_account",
 })
 
 export const auth = getAuth();
-export const signInWithGooglePopUp = ()=> signInWithPopup(auth, provider)
+export const signInWithGooglePopUp = ()=> signInWithPopup(auth, GoogleProvider)
+export const signInWithGoogleRedirect = ()=> signInWithRedirect(auth, GoogleProvider)
 
 export const db =  getFirestore();
 
-export const createUserDocFromAuth = async(userAuth)=>{
+export const createUserDocFromAuth = async(userAuth, additionalInfo={})=>{
+  if(!userAuth) return;
   const userDocRef = doc(db,'users',userAuth.uid);
   console.log(userDocRef);
 
@@ -49,16 +55,15 @@ export const createUserDocFromAuth = async(userAuth)=>{
 
   if(!userSnapShot.exists()){
     const {displayName, email} =userAuth;
-    const createdAt = new Date();
-    console.log(displayName, email, createdAt);
-    
+    const createdAt = new Date();    
 
     try {
 
       await setDoc(userDocRef,{
         email,
         displayName,
-        createdAt
+        createdAt, 
+        ...additionalInfo
       })
       
     } catch (error) {
@@ -69,9 +74,19 @@ export const createUserDocFromAuth = async(userAuth)=>{
   return userDocRef;
 }
 
+export const createAuthWithUserEmailAndPassword = async(email, password)=>{
+  if(!email || !password) return;
+  return await createUserWithEmailAndPassword(auth, email, password);
+}
 
+export const signInAuthUserWithEmailAndPassword = async (email, password) => {
+  if (!email || !password) return;
 
+  return await signInWithEmailAndPassword(auth, email, password);
+};
+export const signOutUser = async()=> await signOut(auth);
 
+export const onAuthStateChangedListener = (cb)=>onAuthStateChanged(auth, cb);
 
 
 
