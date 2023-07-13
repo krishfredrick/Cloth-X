@@ -1,39 +1,47 @@
-import { Link, Outlet } from "react-router-dom"
-import  { default as CrownLogo}  from "../../assets/crown.svg"
-import './navigation.styles.scss'
-import { useContext } from "react"
-import { UserContext } from "../../contextApi/contextApi"
-import { signOutUser } from "../../utils/firebase.utils"
+import {  Outlet } from "react-router-dom";
+import { default as CrownLogo } from "../../assets/crown.svg";
+import { useContext } from "react";
+import { UserContext } from "../../contextApi/contextApi";
+import { signOutUser } from "../../utils/firebase.utils";
+import CartIcon from "../../Components/cart-Icon/CartIcon";
+import CartDropDown from "../../Components/cart-drop-down/CartDropDown";
+import { cartContext } from "../../contextApi/CartContext";
 
-const NavigationBar = ()=>{
-  const {currentUser} = useContext(UserContext);
-  console.log(currentUser);
-  
-  return(
+import {
+  NavigationContainer,
+  NavLinks,
+  NavLink,
+  LogoContainer,
+} from './navigation.styles';
+
+const NavigationBar = () => {
+  const { currentUser } = useContext(UserContext);
+  const { isCartOpen } = useContext(cartContext)
+  // console.log(currentUser);
+
+  return (
     <>
-      <div className="navigation">
-        <Link className="navigation_logo_link" to={'/'}>
-          <img alt='logo' src={CrownLogo} className='navigation_logo' />
-          {/* <CrownLogo /> */}
-        </Link>
-        <div className="navigation_links">
-          <Link className="navigation_link" to={'/shop'}>
-            shop
-          </Link>
-          {
-            currentUser?(
-              <span className="navigation_link" onClick={signOutUser}> SIGN OUT</span>
-            ):(
-              <Link className="navigation_link" to={'/auth'}>
-                Sign In
-              </Link>
-            )
-          }
-        </div>
-      </div>
-        <Outlet />
-    </>
-  )
-}
+      <NavigationContainer>
+        <LogoContainer to='/'>
+          <img src={CrownLogo} alt={`CrownLogo`} className='logo' />
+        </LogoContainer>
+        <NavLinks>
+          <NavLink to='/shop'>SHOP</NavLink>
 
-export default NavigationBar
+          {currentUser ? (
+            <NavLink as='span' onClick={signOutUser}>
+              SIGN OUT
+            </NavLink>
+          ) : (
+            <NavLink to='/auth'>SIGN IN</NavLink>
+          )}
+          <CartIcon />
+        </NavLinks>
+        {isCartOpen && <CartDropDown />}
+      </NavigationContainer>
+      <Outlet />
+    </>
+  );
+};
+
+export default NavigationBar;
